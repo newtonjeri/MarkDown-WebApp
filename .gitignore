@@ -1,0 +1,9 @@
+# local test artifacts (headless-browser profiles & screenshots)
+.fftest*/
+.shot-*.png
+.fftest-shot.png
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp

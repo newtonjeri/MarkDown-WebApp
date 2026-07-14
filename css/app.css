@@ -1,0 +1,592 @@
+/* app.css — MarkPad. GitHub-derived palette, light/dark via [data-theme]. */
+
+/* ------------------------------------------------------------- tokens */
+
+:root {
+  --bg: #ffffff;
+  --bg-panel: #f6f8fa;
+  --bg-hover: #eaeef2;
+  --bg-active: #e0e6eb;
+  --fg: #1f2328;
+  --fg-muted: #59636e;
+  --fg-faint: #818b98;
+  --border: #d0d7de;
+  --accent: #0969da;
+  --accent-fg: #ffffff;
+  --danger: #cf222e;
+  --shadow: 0 8px 24px rgba(31, 35, 40, 0.12);
+  --focus-ring: #0969da;
+
+  /* editor tokens */
+  --ed-font: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+  --ed-size: 13.5px;
+  --ed-lh: 1.65;
+  --ed-pad: 16px;
+  --tok-marker: #cf222e;
+  --tok-heading: #0550ae;
+  --tok-bold: #953800;
+  --tok-italic: #116329;
+  --tok-code: #6639ba;
+  --tok-codeblock: #57606a;
+  --tok-link: #0969da;
+  --tok-quote: #57606a;
+}
+
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --bg-panel: #161b22;
+  --bg-hover: #21262d;
+  --bg-active: #282e36;
+  --fg: #e6edf3;
+  --fg-muted: #8d96a0;
+  --fg-faint: #6e7681;
+  --border: #30363d;
+  --accent: #2f81f7;
+  --accent-fg: #ffffff;
+  --danger: #f85149;
+  --shadow: 0 8px 24px rgba(1, 4, 9, 0.8);
+  --focus-ring: #2f81f7;
+
+  --tok-marker: #ff7b72;
+  --tok-heading: #79c0ff;
+  --tok-bold: #ffa657;
+  --tok-italic: #7ee787;
+  --tok-code: #d2a8ff;
+  --tok-codeblock: #8b949e;
+  --tok-link: #58a6ff;
+  --tok-quote: #8b949e;
+}
+
+/* ------------------------------------------------------------- base */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans",
+    Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: var(--fg);
+  background: var(--bg);
+  overscroll-behavior: none;
+}
+
+button { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 1px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  clip-path: inset(50%);
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  left: 8px; top: -48px;
+  z-index: 100;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  text-decoration: none;
+  transition: top 0.15s;
+}
+.skip-link:focus { top: 8px; }
+
+/* ------------------------------------------------------------- layout */
+
+.app {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+}
+
+/* ------------------------------------------------------------- topbar */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  padding-top: max(6px, env(safe-area-inset-top));
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  min-width: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.file-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  color: var(--fg-muted);
+}
+
+.file-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.dirty-dot { color: var(--accent); font-size: 10px; }
+
+.topbar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+/* ------------------------------------------------------------- buttons */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  color: var(--fg);
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:hover { background: var(--bg-hover); }
+.btn:active { background: var(--bg-active); }
+
+.btn svg {
+  width: 16px; height: 16px;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  flex-shrink: 0;
+}
+.btn svg .fill { fill: currentColor; stroke: none; }
+.svg-num { font: 700 5.6px sans-serif; fill: currentColor; stroke: none; }
+
+.btn-icon { width: 32px; padding: 0; }
+.txt-icon { font-size: 12.5px; font-weight: 600; letter-spacing: -0.3px; }
+.txt-mono { font-family: var(--ed-font); font-size: 11px; }
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-fg);
+}
+.btn-primary:hover { background: color-mix(in srgb, var(--accent) 88%, #000); }
+.btn-primary:active { background: color-mix(in srgb, var(--accent) 78%, #000); }
+
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+.btn-danger:hover { background: color-mix(in srgb, var(--danger) 88%, #000); }
+
+/* theme toggle shows the icon of the theme you'd switch TO */
+.icon-moon { display: none; }
+[data-theme="dark"] .icon-moon { display: none; }
+[data-theme="dark"] .icon-sun { display: block; }
+:root:not([data-theme="dark"]) .icon-sun { display: none; }
+:root:not([data-theme="dark"]) .icon-moon { display: block; }
+
+/* ------------------------------------------------------------- fmt bar */
+
+.fmt-bar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.fmt-group { display: flex; gap: 2px; flex-shrink: 0; }
+
+.fmt-sep {
+  width: 1px;
+  height: 18px;
+  background: var(--border);
+  margin: 0 6px;
+  flex-shrink: 0;
+}
+
+.view-switch {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: var(--bg-hover);
+  border-radius: 8px;
+  flex-shrink: 0;
+  /* stays reachable while the format bar scrolls horizontally */
+  position: sticky;
+  right: 0;
+  z-index: 2;
+  box-shadow: -8px 0 8px -6px var(--bg-panel), 0 0 0 4px var(--bg-panel);
+}
+.view-switch .btn { height: 26px; font-size: 12.5px; padding: 0 10px; border-radius: 6px; }
+.view-switch .btn[aria-pressed="true"] {
+  background: var(--bg);
+  border-color: var(--border);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------- main */
+
+.main {
+  display: grid;
+  grid-template-columns: var(--split, 50%) 6px minmax(0, 1fr);
+  min-height: 0;
+  background: var(--bg);
+}
+
+.pane { min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+
+.main[data-view="edit"] { grid-template-columns: 1fr; }
+.main[data-view="edit"] .divider,
+.main[data-view="edit"] .preview-pane { display: none; }
+
+.main[data-view="preview"] { grid-template-columns: 1fr; }
+.main[data-view="preview"] .divider,
+.main[data-view="preview"] .editor-pane { display: none; }
+
+.divider {
+  cursor: col-resize;
+  background: var(--border);
+  width: 6px;
+  border-left: 2px solid var(--bg);
+  border-right: 2px solid var(--bg);
+  touch-action: none;
+}
+.divider:hover, .divider:focus-visible { background: var(--accent); }
+
+/* ------------------------------------------------------------- editor */
+
+#editor-root { flex: 1; min-height: 0; }
+
+.editor {
+  height: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  background: var(--bg);
+}
+
+.ed-gutter {
+  overflow: hidden;
+  padding: var(--ed-pad) 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-panel);
+  user-select: none;
+  width: 52px;
+}
+
+.ed-ln {
+  font-family: var(--ed-font);
+  font-size: calc(var(--ed-size) - 1.5px);
+  line-height: calc(var(--ed-size) * var(--ed-lh));
+  min-height: calc(var(--ed-size) * var(--ed-lh));
+  color: var(--fg-faint);
+  text-align: right;
+  padding-right: 12px;
+}
+
+.ed-body { position: relative; min-width: 0; }
+
+.ed-hl, .ed-input {
+  position: absolute;
+  inset: 0;
+}
+
+.ed-hl {
+  overflow: hidden;
+  pointer-events: none;
+  scrollbar-gutter: stable;
+}
+
+.ed-hl-inner { padding: var(--ed-pad); }
+
+.ed-hl-inner, .ed-input {
+  font-family: var(--ed-font);
+  font-size: var(--ed-size);
+  line-height: var(--ed-lh);
+  letter-spacing: normal;
+  tab-size: 2;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+}
+
+.ed-line { min-height: calc(var(--ed-size) * var(--ed-lh)); }
+
+.ed-input {
+  padding: var(--ed-pad);
+  margin: 0;
+  border: none;
+  resize: none;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--fg);
+  outline: none;
+}
+.ed-input::selection {
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: transparent;
+}
+.ed-input::placeholder { color: var(--fg-faint); }
+
+/* editor source tokens */
+.ed-hl-inner { color: var(--fg); }
+.tok-marker { color: var(--tok-marker); }
+.tok-heading { color: var(--tok-heading); font-weight: 700; }
+.tok-heading .tok-marker { color: var(--tok-heading); opacity: 0.55; font-weight: 400; }
+.tok-bold { color: var(--tok-bold); font-weight: 700; }
+.tok-italic { color: var(--tok-italic); font-style: italic; }
+.tok-strike { text-decoration: line-through; color: var(--fg-muted); }
+.tok-codespan { color: var(--tok-code); }
+.tok-codeblock { color: var(--tok-codeblock); }
+.tok-fence { color: var(--tok-code); }
+.tok-link-label { color: var(--tok-link); }
+.tok-link-url { color: var(--fg-muted); text-decoration: underline; text-underline-offset: 2px; }
+.tok-emoji { color: var(--tok-bold); }
+.tok-quote, .tok-quote * { color: var(--tok-quote); }
+.tok-quote .tok-marker { color: var(--tok-marker); }
+.tok-task { color: var(--tok-italic); }
+.tok-hr { color: var(--fg-faint); }
+
+/* ------------------------------------------------------------- preview */
+
+.preview-pane {
+  overflow: hidden;
+  background: var(--bg);
+}
+
+#preview {
+  flex: 1;
+  overflow-y: auto;
+  padding: 28px 36px 72px;
+  scrollbar-gutter: stable;
+}
+
+#preview.markdown-body {
+  max-width: none;
+  background: var(--bg);
+}
+
+/* keep GitHub css from fighting the pane background */
+.markdown-body { background: transparent; }
+
+/* ------------------------------------------------------------- statusbar */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 3px 12px;
+  padding-bottom: max(3px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: var(--bg-panel);
+  font-size: 12px;
+  color: var(--fg-muted);
+  min-height: 26px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.status-spacer { flex: 1; }
+.status-msg { overflow: hidden; text-overflow: ellipsis; }
+.status-net { color: var(--accent); font-weight: 600; }
+
+.autosave-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+}
+.autosave-toggle input { accent-color: var(--accent); margin: 0; }
+
+/* ------------------------------------------------------------- dialogs */
+
+dialog {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg);
+  color: var(--fg);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  width: min(420px, calc(100vw - 32px));
+}
+dialog::backdrop { background: rgba(1, 4, 9, 0.5); }
+
+dialog h2 { margin: 0 0 12px; font-size: 16px; }
+dialog fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0 0 12px;
+  padding: 8px 12px 10px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+dialog legend { font-size: 12px; color: var(--fg-muted); padding: 0 4px; }
+dialog label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+dialog input[type="radio"], dialog input[type="checkbox"] { accent-color: var(--accent); margin: 0; }
+
+.dialog-hint { color: var(--fg-muted); font-size: 12.5px; margin: 4px 0 14px; }
+/* row-reverse keeps the primary button on the right while it stays first in
+   DOM order (so plain Enter submits "export", not "cancel") */
+.dialog-actions { display: flex; flex-direction: row-reverse; justify-content: flex-start; gap: 8px; }
+.dialog-actions .btn { border-color: var(--border); }
+.dialog-actions .btn-primary { border-color: var(--accent); }
+
+/* ------------------------------------------------------------- toast */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 44px;
+  transform: translateX(-50%) translateY(16px);
+  background: var(--fg);
+  color: var(--bg);
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.18s, transform 0.18s;
+  max-width: min(90vw, 480px);
+  z-index: 60;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ------------------------------------------------------------- print root */
+
+.print-root { display: none; }
+
+/* ------------------------------------------------------------- responsive */
+
+@media (max-width: 1024px) {
+  .btn-label { display: none; }
+  .btn { padding: 0 8px; }
+  .btn-compact { display: none; }
+}
+
+@media (max-width: 767px) {
+  .brand-name { display: none; }
+  .view-split-btn { display: none; }
+  .divider { display: none; }
+
+  /* single pane: split behaves like edit (app.js also switches the mode) */
+  .main, .main[data-view="split"] { grid-template-columns: 1fr; }
+  .main[data-view="split"] .preview-pane { display: none; }
+
+  .btn, .btn-icon { height: 40px; min-width: 40px; }
+  .view-switch .btn { height: 32px; }
+  .fmt-bar { padding: 4px 6px; }
+
+  /* 16px stops iOS Safari from zooming the focused textarea */
+  :root { --ed-size: 16px; --ed-pad: 12px; }
+  .ed-gutter { width: 44px; }
+  #preview { padding: 20px 16px 64px; }
+
+  .statusbar { gap: 10px; }
+  #status-file, #status-stats { display: none; }
+}
+
+@media (max-width: 380px) {
+  .topbar { gap: 6px; padding: 6px 8px; }
+  .file-info { display: none; }
+}
+
+/* ------------------------------------------------------------- motion */
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------- print */
+
+@media print {
+  .app, .toast, dialog, .skip-link { display: none !important; }
+
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+
+  .print-root {
+    display: block !important;
+    color-scheme: light;
+  }
+
+  .print-root.markdown-body {
+    max-width: none;
+    padding: 0;
+    font-size: 12.5px;
+    background: #fff;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-root h1, .print-root h2, .print-root h3, .print-root h4 {
+    break-after: avoid-page;
+  }
+  .print-root tr, .print-root img { break-inside: avoid-page; }
+  .print-root pre, .print-root code {
+    white-space: pre-wrap !important;
+    word-wrap: break-word;
+  }
+  .print-root .page-break, .print-root .pagebreak { break-after: page; }
+
+  .pdf-toc { break-after: page; }
+  .pdf-toc-title { border-bottom: 1px solid #d0d7de; padding-bottom: 0.3em; }
+  .pdf-toc ul { list-style: none; padding-left: 0; margin: 0; }
+  .pdf-toc li { margin: 0.35em 0; }
+  .pdf-toc a { color: inherit; text-decoration: none; }
+  .pdf-toc .toc-depth-2 { padding-left: 1.4em; }
+  .pdf-toc .toc-depth-3 { padding-left: 2.8em; }
+
+  /* Page numbers where @page margin boxes are supported (Chromium 131+). */
+  @page {
+    @bottom-center { content: counter(page); font-size: 10px; color: #59636e; }
+  }
+}

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="MarkPad — an offline-first Markdown editor with GitHub-style preview and PDF export. Private: your files never leave your device.">
+  <meta name="theme-color" content="#ffffff">
+  <title>MarkPad — Markdown Editor</title>
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+
+  <link rel="stylesheet" href="vendor/github-markdown-light.css" data-theme-css="light">
+  <link rel="stylesheet" href="vendor/github-markdown-dark.css" data-theme-css="dark" disabled>
+  <link rel="stylesheet" href="vendor/hljs-github-light.min.css" data-theme-css="light">
+  <link rel="stylesheet" href="vendor/hljs-github-dark.min.css" data-theme-css="dark" disabled>
+  <link rel="stylesheet" href="css/app.css">
+
+  <script>
+    // Apply the saved/OS theme before first paint to avoid a light flash.
+    (function () {
+      try {
+        var t = localStorage.getItem('mdpad.theme');
+        if (t !== 'dark' && t !== 'light') {
+          t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.dataset.theme = t;
+        document.querySelectorAll('link[data-theme-css]').forEach(function (l) {
+          l.disabled = l.getAttribute('data-theme-css') !== t;
+        });
+      } catch (e) { /* storage disabled — default theme stands */ }
+    })();
+  </script>
+
+  <script src="vendor/marked.umd.js" defer></script>
+  <script src="vendor/purify.min.js" defer></script>
+  <script src="vendor/highlight.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#editor-root">Skip to editor</a>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="icons/icon.svg" alt="" width="22" height="22">
+        <span class="brand-name">MarkPad</span>
+      </div>
+
+      <div class="file-info" aria-live="polite">
+        <span class="file-name" id="file-name">untitled.md</span>
+        <span class="dirty-dot" id="dirty-dot" hidden title="Unsaved changes">●</span>
+      </div>
+
+      <div class="topbar-actions" role="toolbar" aria-label="File">
+        <button type="button" class="btn" data-cmd="new" aria-label="New document" title="New document (Ctrl+Alt+N)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9 1.5H4.5A1.5 1.5 0 0 0 3 3v10a1.5 1.5 0 0 0 1.5 1.5h7A1.5 1.5 0 0 0 13 13V5.5L9 1.5z"/><path d="M9 1.5V5.5H13M8 8v4M6 10h4"/></svg>
+          <span class="btn-label">New</span>
+        </button>
+        <button type="button" class="btn" data-cmd="open" aria-label="Open file" title="Open .md file (Ctrl+O)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h3l1.5 2H13a1.5 1.5 0 0 1 1.5 1.5v6A1.5 1.5 0 0 1 13 14H3a1.5 1.5 0 0 1-1.5-1.5v-8z"/></svg>
+          <span class="btn-label">Open</span>
+        </button>
+        <button type="button" class="btn" data-cmd="save" aria-label="Save" id="btn-save" title="Save (Ctrl+S)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 2.5h9l3 3v8a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1v-10a1 1 0 0 1 1-1z"/><path d="M5 2.5V6h6V2.5M4.5 14.5V10h7v4.5"/></svg>
+          <span class="btn-label">Save</span>
+        </button>
+        <button type="button" class="btn btn-compact" data-cmd="save-as" aria-label="Save as" title="Save As (Ctrl+Shift+S)">
+          <span class="btn-label">Save&nbsp;As</span>
+        </button>
+        <button type="button" class="btn btn-primary" data-cmd="export" aria-label="Export to PDF" title="Export to PDF (Ctrl+P)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v8M5 7l3 3 3-3"/><path d="M2.5 11.5v2a1 1 0 0 0 1 1h9a1 1 0 0 0 1-1v-2"/></svg>
+          <span class="btn-label">Export&nbsp;PDF</span>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="theme" id="btn-theme" aria-pressed="false" title="Toggle dark mode">
+          <svg class="icon-sun" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="3.25"/><path d="M8 1v1.5M8 13.5V15M15 8h-1.5M2.5 8H1M12.95 3.05l-1.06 1.06M4.11 11.89l-1.06 1.06M12.95 12.95l-1.06-1.06M4.11 4.11L3.05 3.05"/></svg>
+          <svg class="icon-moon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 9.8A6 6 0 1 1 6.2 2.5a4.8 4.8 0 0 0 7.3 7.3z"/></svg>
+          <span class="visually-hidden">Toggle dark mode</span>
+        </button>
+      </div>
+    </header>
+
+    <div class="fmt-bar" role="toolbar" aria-label="Formatting">
+      <div class="fmt-group">
+        <button type="button" class="btn btn-icon" data-cmd="h1" aria-label="Heading level 1" title="Heading 1"><span class="txt-icon">H1</span></button>
+        <button type="button" class="btn btn-icon" data-cmd="h2" aria-label="Heading level 2" title="Heading 2"><span class="txt-icon">H2</span></button>
+        <button type="button" class="btn btn-icon" data-cmd="h3" aria-label="Heading level 3" title="Heading 3"><span class="txt-icon">H3</span></button>
+      </div>
+      <span class="fmt-sep" aria-hidden="true"></span>
+      <div class="fmt-group">
+        <button type="button" class="btn btn-icon" data-cmd="bold" aria-label="Bold" title="Bold (Ctrl+B)"><span class="txt-icon" style="font-weight:800">B</span></button>
+        <button type="button" class="btn btn-icon" data-cmd="italic" aria-label="Italic" title="Italic (Ctrl+I)"><span class="txt-icon" style="font-style:italic">I</span></button>
+        <button type="button" class="btn btn-icon" data-cmd="strike" aria-label="Strikethrough" title="Strikethrough (Ctrl+Shift+X)"><span class="txt-icon" style="text-decoration:line-through">S</span></button>
+        <button type="button" class="btn btn-icon" data-cmd="code" aria-label="Inline code" title="Inline code (Ctrl+E)"><span class="txt-icon txt-mono">&lt;/&gt;</span></button>
+      </div>
+      <span class="fmt-sep" aria-hidden="true"></span>
+      <div class="fmt-group">
+        <button type="button" class="btn btn-icon" data-cmd="link" aria-label="Insert link" title="Insert link (Ctrl+K)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.3 9.7l3.4-3.4M7.2 11.6l-1.4 1.4a2.4 2.4 0 0 1-3.4-3.4l1.9-1.9M8.8 4.4l1.4-1.4a2.4 2.4 0 0 1 3.4 3.4l-1.9 1.9"/></svg>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="image" aria-label="Insert image" title="Insert image">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1.5"/><circle cx="5.4" cy="6.4" r="1.2"/><path d="M2.5 12l3.5-3.5 2.6 2.6 2.2-2.2 2.7 2.7"/></svg>
+        </button>
+      </div>
+      <span class="fmt-sep" aria-hidden="true"></span>
+      <div class="fmt-group">
+        <button type="button" class="btn btn-icon" data-cmd="ul" aria-label="Bulleted list" title="Bulleted list (Ctrl+Shift+8)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4h8.5M6 8h8.5M6 12h8.5"/><circle cx="2.6" cy="4" r="1.1" class="fill"/><circle cx="2.6" cy="8" r="1.1" class="fill"/><circle cx="2.6" cy="12" r="1.1" class="fill"/></svg>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="ol" aria-label="Numbered list" title="Numbered list (Ctrl+Shift+7)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M7 4h7.5M7 8h7.5M7 12h7.5"/><text x="1.2" y="5.6" class="svg-num">1</text><text x="1.2" y="9.6" class="svg-num">2</text><text x="1.2" y="13.6" class="svg-num">3</text></svg>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="task" aria-label="Task list" title="Task list">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.8" width="5.6" height="5.6" rx="1.2"/><path d="M3.1 4.6l1.2 1.2 2-2.4M10 4.5h4.5M10 11.5h4.5"/><rect x="1.5" y="8.8" width="5.6" height="5.6" rx="1.2"/></svg>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="quote" aria-label="Blockquote" title="Blockquote (Ctrl+Shift+9)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path class="fill" d="M2.5 9.5c0-3 1.6-5.2 4.3-6.3l.5.9C5.8 5 5.2 6.1 5.1 7.3c.2-.1.5-.1.7-.1 1.2 0 2 .9 2 2.1 0 1.3-1 2.2-2.2 2.2-1.9 0-3.1-1-3.1-2zm7 0c0-3 1.6-5.2 4.3-6.3l.5.9c-1.5.9-2.1 2-2.2 3.2.2-.1.5-.1.7-.1 1.2 0 2 .9 2 2.1 0 1.3-1 2.2-2.2 2.2-1.9 0-3.1-1-3.1-2z"/></svg>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="codeblock" aria-label="Code block" title="Code block">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 5L2.5 8l3 3M10.5 5l3 3-3 3"/></svg>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="table" aria-label="Insert table" title="Insert table">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="1"/><path d="M1.5 6.5h13M6 6.5v7M10.5 6.5v7"/></svg>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="hr" aria-label="Horizontal rule" title="Horizontal rule">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h12"/><path d="M4 4.5h8M4 11.5h8" opacity=".35"/></svg>
+        </button>
+      </div>
+      <span class="fmt-sep" aria-hidden="true"></span>
+      <div class="fmt-group">
+        <button type="button" class="btn btn-icon" data-cmd="undo" aria-label="Undo" title="Undo (Ctrl+Z)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 7h6.5a3.25 3.25 0 0 1 0 6.5H6.5"/><path d="M6.5 4L3.5 7l3 3"/></svg>
+        </button>
+        <button type="button" class="btn btn-icon" data-cmd="redo" aria-label="Redo" title="Redo (Ctrl+Shift+Z)">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M12.5 7H6a3.25 3.25 0 0 0 0 6.5h3.5"/><path d="M9.5 4l3 3-3 3"/></svg>
+        </button>
+      </div>
+
+      <div class="view-switch" role="group" aria-label="View mode">
+        <button type="button" class="btn" data-view-btn="edit" aria-pressed="false">Edit</button>
+        <button type="button" class="btn view-split-btn" data-view-btn="split" aria-pressed="true">Split</button>
+        <button type="button" class="btn" data-view-btn="preview" aria-pressed="false">Preview</button>
+      </div>
+    </div>
+
+    <main class="main" id="main" data-view="split" style="--split:50%">
+      <section class="pane editor-pane" aria-label="Markdown source">
+        <div id="editor-root"></div>
+      </section>
+      <div class="divider" id="divider" role="separator" aria-orientation="vertical"
+           tabindex="0" aria-label="Resize editor and preview panes (arrow keys)"></div>
+      <section class="pane preview-pane" aria-label="Rendered preview">
+        <article class="markdown-body" id="preview"></article>
+      </section>
+    </main>
+
+    <footer class="statusbar">
+      <span id="status-file" class="status-item">MarkPad v1.0</span>
+      <span id="status-net" class="status-item status-net"></span>
+      <span id="status-msg" class="status-item status-msg" aria-live="polite"></span>
+      <span class="status-spacer"></span>
+      <label class="autosave-toggle status-item">
+        <input type="checkbox" id="autosave-toggle" checked> Autosave
+      </label>
+      <span id="status-pos" class="status-item">Ln 1, Col 1</span>
+      <span id="status-stats" class="status-item">0 words</span>
+    </footer>
+  </div>
+
+  <!-- Populated only while printing/exporting. -->
+  <div id="print-root" class="markdown-body print-root" aria-hidden="true"></div>
+
+  <dialog id="export-dialog" aria-labelledby="export-title">
+    <form method="dialog" id="export-form">
+      <h2 id="export-title">Export to PDF</h2>
+      <fieldset>
+        <legend>Page size</legend>
+        <label><input type="radio" name="pageSize" value="A4" checked> A4</label>
+        <label><input type="radio" name="pageSize" value="Letter"> Letter</label>
+      </fieldset>
+      <fieldset>
+        <legend>Margins</legend>
+        <label><input type="radio" name="margin" value="narrow"> Narrow</label>
+        <label><input type="radio" name="margin" value="normal" checked> Normal</label>
+        <label><input type="radio" name="margin" value="wide"> Wide</label>
+      </fieldset>
+      <fieldset>
+        <legend>Options</legend>
+        <label><input type="checkbox" name="toc"> Include table of contents</label>
+      </fieldset>
+      <p class="dialog-hint">Choose “Save as PDF” as the destination in the print dialog.</p>
+      <!-- Export first in DOM so Enter submits it; CSS reverses the visual order. -->
+      <div class="dialog-actions">
+        <button type="submit" value="export" class="btn btn-primary">Export</button>
+        <button type="submit" value="cancel" class="btn" formnovalidate>Cancel</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title">
+    <form method="dialog">
+      <h2 id="confirm-title">Discard unsaved changes?</h2>
+      <p>Your current document has changes that haven’t been saved to a file.</p>
+      <div class="dialog-actions">
+        <button type="submit" value="cancel" class="btn" autofocus>Keep editing</button>
+        <button type="submit" value="discard" class="btn btn-danger">Discard</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <noscript><p style="padding:2rem">MarkPad needs JavaScript to run — everything stays on your device.</p></noscript>
+</body>
+</html>
