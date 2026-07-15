@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="MarkPad — an offline-first Markdown editor with GitHub-style preview and PDF export. Private: your files never leave your device.">
-  <meta name="theme-color" content="#ffffff">
+  <meta name="theme-color" content="#f2f5fb">
   <title>MarkPad — Markdown Editor</title>
 
   <link rel="manifest" href="manifest.webmanifest">
@@ -38,7 +38,7 @@
   <script src="vendor/highlight.min.js" defer></script>
   <script type="module" src="js/app.js"></script>
 </head>
-<body>
+<body data-view="preview">
   <a class="skip-link" href="#editor-root">Skip to editor</a>
 
   <div class="app">
@@ -139,12 +139,12 @@
 
       <div class="view-switch" role="group" aria-label="View mode">
         <button type="button" class="btn" data-view-btn="edit" aria-pressed="false">Edit</button>
-        <button type="button" class="btn view-split-btn" data-view-btn="split" aria-pressed="true">Split</button>
-        <button type="button" class="btn" data-view-btn="preview" aria-pressed="false">Preview</button>
+        <button type="button" class="btn view-split-btn" data-view-btn="split" aria-pressed="false">Split</button>
+        <button type="button" class="btn" data-view-btn="preview" aria-pressed="true">Preview</button>
       </div>
     </div>
 
-    <main class="main" id="main" data-view="split" style="--split:50%">
+    <main class="main" id="main" data-view="preview" style="--split:50%">
       <section class="pane editor-pane" aria-label="Markdown source">
         <div id="editor-root"></div>
       </section>

@@ -2,7 +2,7 @@
 // cache-first: after the first visit the app is 100% functional offline.
 // Bump VERSION on any asset change to roll out updates.
 
-const VERSION = 'markpad-v1.0.0';
+const VERSION = 'markpad-v1.1.0';
 
 const ASSETS = [
   './',

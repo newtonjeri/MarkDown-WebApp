@@ -249,6 +249,7 @@ const mobileQuery = matchMedia('(max-width: 767px)');
 function setView(view) {
   if (view === 'split' && mobileQuery.matches) view = 'edit';
   main.dataset.view = view;
+  document.body.dataset.view = view; // lets CSS hide editing tools in preview
   for (const btn of document.querySelectorAll('[data-view-btn]')) {
     btn.setAttribute('aria-pressed', String(btn.dataset.viewBtn === view));
   }
@@ -420,7 +421,7 @@ window.addEventListener('offline', updateOnlineBadge);
   if (!supportsFSAccess) {
     $('#btn-save').title = 'Downloads a copy (this browser cannot save in place)';
   }
-  setView(localStorage.getItem('mdpad.view') ?? 'split');
+  setView('preview'); // always open in reading mode; switch to Edit/Split from the toolbar
   const split = parseFloat(localStorage.getItem('mdpad.split') ?? '0.5');
   if (!Number.isNaN(split)) main.style.setProperty('--split', `${split * 100}%`);
   onEdited();

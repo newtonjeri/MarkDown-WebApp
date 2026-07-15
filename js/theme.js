@@ -19,7 +19,7 @@ export function applyTheme(theme) {
   }
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'dark' ? '#0d1117' : '#ffffff');
+    ?.setAttribute('content', theme === 'dark' ? '#070b14' : '#f2f5fb');
 }
 
 export function initTheme() {
