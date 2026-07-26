@@ -1,4 +1,4 @@
-# MarkPad — Markdown Editor & PDF Exporter
+# .MD reader+ — Markdown Editor & PDF Exporter
 
 An **offline-first Progressive Web App** for viewing, editing, and exporting
 Markdown files with GitHub-style rendering. Private by design: no cloud, no
@@ -20,7 +20,7 @@ device.
   clickable table of contents, automatic page-break rules
 - **File management** — open/save `.md` files in place (File System Access
   API on Chrome/Edge; picker + download fallback on Firefox/Safari),
-  drag-and-drop, OS file-handler registration ("Open with MarkPad")
+  drag-and-drop, OS file-handler registration ("Open with .MD reader+")
 - **Autosave** — drafts persist to localStorage (toggleable) and restore on
   next launch
 - **Responsive** — split view with draggable divider on desktop, Edit/Preview
@@ -49,7 +49,7 @@ after that it works fully offline and can be installed from the browser's
 
 ## Opening a document by link
 
-MarkPad can be pointed at a remote Markdown file with a query parameter, so
+.MD reader+ can be pointed at a remote Markdown file with a query parameter, so
 another application can hand a document over:
 
 ```
@@ -71,7 +71,7 @@ Two requirements on the host serving the document:
 - it should serve the file as `text/markdown` (or any text type) rather than
   forcing a download.
 
-If the fetch fails, MarkPad says why — a cross-origin refusal and a dead link
+If the fetch fails, .MD reader+ says why — a cross-origin refusal and a dead link
 are indistinguishable to the user otherwise — and leaves the editor usable.
 
 ## Keyboard shortcuts

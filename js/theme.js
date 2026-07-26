@@ -4,8 +4,11 @@
 
 const KEY = 'mdpad.theme';
 
+// Dark is the design's default: "a primary dark mode that feels deep,
+// infinite and luminous, and a secondary light mode". The OS preference still
+// wins when it expresses one, and an explicit choice always wins over both.
 function systemTheme() {
-  return matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 }
 
 export function currentTheme() {
@@ -19,7 +22,7 @@ export function applyTheme(theme) {
   }
   document
     .querySelector('meta[name="theme-color"]')
-    ?.setAttribute('content', theme === 'dark' ? '#070b14' : '#f2f5fb');
+    ?.setAttribute('content', theme === 'dark' ? '#0b0e14' : '#f7f8fc');
 }
 
 export function initTheme() {

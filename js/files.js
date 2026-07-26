@@ -58,7 +58,7 @@ export function isMarkdownName(name) {
 }
 
 /**
- * The document URL MarkPad was deep-linked with, if any:
+ * The document URL .MD reader+ was deep-linked with, if any:
  *
  *     index.html?url=https://host/path/notes.md
  *

@@ -1,4 +1,4 @@
-// tests.js — unit tests for MarkPad's core logic. Runs in any browser;
+// tests.js — unit tests for .MD reader+'s core logic. Runs in any browser;
 // under `firefox --headless` (with browser.dom.window.dump.enabled) results
 // also stream to stdout via dump().
 

@@ -20,6 +20,13 @@ const ASSETS = [
   './index.html',
   './manifest.webmanifest',
   './css/app.css',
+  './css/fonts.css',
+  './css/fonts/Inter-400-latin.woff2',
+  './css/fonts/Inter-500-latin.woff2',
+  './css/fonts/Inter-600-latin.woff2',
+  './css/fonts/Inter-700-latin.woff2',
+  './css/fonts/JetBrainsMono-400-latin.woff2',
+  './css/fonts/JetBrainsMono-700-latin.woff2',
   './js/app.js',
   './js/editor.js',
   './js/emoji-map.js',
@@ -47,7 +54,9 @@ function isAppShell(url) {
   return p.endsWith('/')
     || p.endsWith('/index.html')
     || p.endsWith('.webmanifest')
-    || /\/(js|css)\//.test(p);
+    // Fonts live under css/ but never change; leave them cache-first so a
+    // network-first shell does not re-fetch a megabyte of woff2 every load.
+    || (/\/(js|css)\//.test(p) && !p.endsWith('.woff2'));
 }
 
 self.addEventListener('install', (event) => {
