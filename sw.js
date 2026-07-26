@@ -1,9 +1,20 @@
-// sw.js — MarkPad service worker. Precache everything on install, then serve
-// cache-first: after the first visit the app is 100% functional offline.
-// Bump VERSION on any asset change to roll out updates.
+// sw.js — .MD reader+ service worker.
+//
+// Strategy: the app shell and the app's own code are served NETWORK-FIRST and
+// fall back to cache; third-party vendor bundles and icons stay CACHE-FIRST.
+// The app is still fully functional offline, but an installed copy is no
+// longer frozen at the version it was installed with.
+//
+// Why not cache-first throughout, as before: freshness then depended entirely
+// on a human remembering to edit VERSION below on every deploy. Miss it once
+// and this file is byte-identical on the server, the browser's update check
+// finds no change, no new worker is ever installed, and every installed phone
+// stays on the old build permanently — with no way for the user to force it.
 
-const VERSION = 'markpad-v1.1.0';
+const VERSION = 'mdreader-v1.2.0';
 
+// Only used to name the cache and to evict old ones. Deliberately NOT the
+// mechanism that delivers updates any more.
 const ASSETS = [
   './',
   './index.html',
@@ -30,9 +41,23 @@ const ASSETS = [
   './icons/icon-maskable-512.png',
 ];
 
+/** App code and shell: must be allowed to change without a version bump. */
+function isAppShell(url) {
+  const p = url.pathname;
+  return p.endsWith('/')
+    || p.endsWith('/index.html')
+    || p.endsWith('.webmanifest')
+    || /\/(js|css)\//.test(p);
+}
+
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(VERSION).then((cache) => cache.addAll(ASSETS)),
+    caches.open(VERSION)
+      .then((cache) => cache.addAll(ASSETS))
+      // Take over as soon as the new worker is ready. Without this the new
+      // worker sits in "waiting" until every client closes — and an installed
+      // home-screen app is backgrounded, not closed, so it can wait for days.
+      .then(() => self.skipWaiting()),
   );
 });
 
@@ -47,7 +72,12 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('message', (event) => {
-  if (event.data === 'skip-waiting') self.skipWaiting();
+  // Kept for a page that wants to promote a waiting worker explicitly. The
+  // string is matched exactly; 'SKIP_WAITING' (the Workbox spelling) is also
+  // accepted so a future change of convention cannot silently do nothing.
+  if (event.data === 'skip-waiting' || event.data?.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', (event) => {
@@ -57,24 +87,45 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return; // never touch cross-origin
 
+  const shell = request.mode === 'navigate' || isAppShell(url);
+
   event.respondWith(
     (async () => {
       const cache = await caches.open(VERSION);
+
+      if (shell) {
+        // Network-first: a deploy is picked up on the next load, with the
+        // cache as the offline fallback.
+        try {
+          const response = await fetch(request);
+          if (response.ok && response.type === 'basic') {
+            cache.put(request, response.clone());
+          }
+          return response;
+        } catch (err) {
+          const cached = await cache.match(request, { ignoreSearch: true });
+          if (cached) return cached;
+          if (request.mode === 'navigate') {
+            const fallback = await cache.match('./index.html');
+            if (fallback) return fallback;
+          }
+          throw err;
+        }
+      }
+
+      // Vendor bundles, icons and runtime documents: cache-first for speed.
       const cached = await cache.match(request, { ignoreSearch: true });
       if (cached) return cached;
       try {
         const response = await fetch(request);
-        // Runtime-cache anything same-origin we didn't precache (e.g. images
-        // referenced by documents) so repeat views work offline too.
         if (response.ok && response.type === 'basic') {
           cache.put(request, response.clone());
         }
         return response;
       } catch (err) {
-        // Offline navigation to any path falls back to the app shell.
         if (request.mode === 'navigate') {
-          const shell = await cache.match('./index.html');
-          if (shell) return shell;
+          const fallback = await cache.match('./index.html');
+          if (fallback) return fallback;
         }
         throw err;
       }

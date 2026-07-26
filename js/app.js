@@ -411,14 +411,53 @@ autosaveToggle.addEventListener('change', () => {
 /* ------------------------------------------------------------- PWA bits */
 
 if ('serviceWorker' in navigator) {
+  // Guards a single reload: controllerchange can fire more than once, and an
+  // unguarded reload here is an infinite refresh loop.
+  let reloading = false;
+
+  /**
+   * A new worker has taken control, so the page is running against updated
+   * assets. Reload to pick them up — but never at the cost of the user's
+   * work: with autosave off nothing is persisted, and reloading would discard
+   * the buffer silently. In that case ask instead of acting.
+   */
+  function applyUpdate() {
+    if (reloading) return;
+    if (isDirty() && !state.autosave) {
+      toast('Update installed — save your work, then reload to apply', 8000);
+      return;
+    }
+    // Flush synchronously: the draft write is debounced by 800ms and would
+    // otherwise lose the last keystrokes across the reload.
+    saveDraft({ content: editor.getValue(), fileName: state.fileName, dirty: isDirty() });
+    reloading = true;
+    location.reload();
+  }
+
+  navigator.serviceWorker.addEventListener('controllerchange', applyUpdate);
+
   window.addEventListener('load', async () => {
     try {
-      const reg = await navigator.serviceWorker.register('./sw.js');
+      // updateViaCache:'none' stops the browser satisfying its sw.js check
+      // from the HTTP cache — GitHub Pages serves a positive max-age, which
+      // can otherwise delay an update by hours.
+      const reg = await navigator.serviceWorker.register('./sw.js', {
+        updateViaCache: 'none',
+      });
+
+      // An installed app is usually resumed, not cold-launched, so a check
+      // that only runs on load may never run again. Re-check on resume.
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update().catch(() => {});
+      });
+
       reg.addEventListener('updatefound', () => {
         const worker = reg.installing;
         worker?.addEventListener('statechange', () => {
           if (worker.state === 'installed' && navigator.serviceWorker.controller) {
-            toast('Update ready — reload to apply', 6000);
+            // The worker calls skipWaiting() itself, so control transfers
+            // without being asked; applyUpdate runs on controllerchange.
+            toast('Updating to the latest version…', 3000);
           }
         });
       });
