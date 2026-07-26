@@ -173,11 +173,30 @@ button { font: inherit; color: inherit; }
 }
 
 .brand-name {
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  color: var(--fg);
+}
+
+/* ".MD" carries the brand colour and the file-extension idea; the rest of the
+   name stays quiet so the lockup reads as one word, not three competing ones. */
+.brand-ext {
   background: linear-gradient(90deg, var(--accent), var(--accent-2));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  letter-spacing: 0.04em;
+  font-weight: 800;
+}
+
+/* The "+" is the mark's accent, repeated here at superscript size so the icon
+   and the wordmark are recognisably the same brand. */
+.brand-plus {
+  color: #f0a92b;
+  font-weight: 800;
+  font-size: 0.82em;
+  vertical-align: super;
+  line-height: 0;
+  margin-left: 1px;
 }
 
 .file-info {

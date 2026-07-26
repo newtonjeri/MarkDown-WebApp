@@ -1,6 +1,6 @@
 {
-  "name": "MarkPad — Markdown Editor & PDF Exporter",
-  "short_name": "MarkPad",
+  "name": ".MD reader+ — Markdown Editor & PDF Exporter",
+  "short_name": ".MD reader+",
   "description": "Offline-first Markdown editor with GitHub-style live preview and PDF export. Private by design — files never leave your device.",
   "id": "markpad-v1",
   "start_url": "./",

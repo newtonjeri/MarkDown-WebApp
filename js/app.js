@@ -5,6 +5,7 @@ import { Editor, lineOps } from './editor.js';
 import { renderMarkdown, countStats } from './renderer.js';
 import {
   openFile, openDropped, saveFile, saveFileAs, isMarkdownName,
+  documentUrlFromLocation, fileNameFromUrl,
   saveDraft, loadDraft, clearDraft, supportsFSAccess,
 } from './files.js';
 import { exportPdf, initPrintHooks } from './pdfexport.js';
@@ -12,7 +13,7 @@ import { initTheme, toggleTheme, currentTheme } from './theme.js';
 
 const $ = (sel) => document.querySelector(sel);
 
-const WELCOME = `# Welcome to MarkPad :wave:
+const WELCOME = `# Welcome to .MD reader+ :wave:
 
 A fast, **offline-first** Markdown editor with GitHub-style preview and
 one-click PDF export. Your work autosaves locally and never leaves this
@@ -95,7 +96,7 @@ function toast(msg, ms = 2600) {
 function refreshFileStatus() {
   $('#file-name').textContent = state.fileName;
   $('#dirty-dot').hidden = !isDirty();
-  document.title = `${isDirty() ? '• ' : ''}${state.fileName} — MarkPad`;
+  document.title = `${isDirty() ? '• ' : ''}${state.fileName} — .MD reader+`;
 }
 
 /* --------------------------------------------------------------- preview */
@@ -135,6 +136,43 @@ function onEdited() {
   refreshStats();
   refreshFileStatus();
   scheduleDraft();
+}
+
+
+/* ------------------------------------------------- open a document by URL */
+
+async function openFromUrl(raw) {
+  const status = $('#status-msg');
+  status.textContent = 'Loading document…';
+  try {
+    const res = await fetch(raw, { credentials: 'omit', redirect: 'follow' });
+    if (!res.ok) throw new Error(`the server replied ${res.status}`);
+    const text = await res.text();
+    const name = fileNameFromUrl(raw);
+    // No file handle: the document came off the network, so Save As is the
+    // only way back to disk. Recording lastSaved keeps it from opening in a
+    // dirty state, which would otherwise nag on the first keystroke.
+    loadDocument(text, name, null);
+    // Compare against what the editor actually holds, not the bytes off the
+    // wire: setValue normalises line endings, so storing the raw text marked
+    // a freshly opened document as already modified.
+    state.lastSaved = editor.getValue();
+    saveDraft({ content: state.lastSaved, fileName: name, dirty: false });
+    refreshFileStatus();
+    renderPreviewNow();
+    status.textContent = `Opened ${name}`;
+    toast(`Opened ${name}`);
+  } catch (err) {
+    console.error(err);
+    status.textContent = 'Could not load the linked document';
+    // Naming the cause matters here: a cross-origin block and a dead link
+    // look identical from the outside, and only one of them is fixable by
+    // the person who sent the link.
+    const why = err instanceof TypeError
+      ? 'the server refused the request (it may not allow cross-origin reads)'
+      : err.message;
+    toast(`Could not load that link — ${why}`, 6000);
+  }
 }
 
 /* ------------------------------------------------------------- file ops */
@@ -427,4 +465,10 @@ window.addEventListener('offline', updateOnlineBadge);
   onEdited();
   renderPreviewNow(); // first paint shouldn't wait for the debounce
   updateOnlineBadge();
+
+  // A link is an explicit request for a specific document, so it replaces
+  // whatever the draft restored. Done after the first paint so the editor is
+  // already usable while the fetch is in flight.
+  const linked = documentUrlFromLocation();
+  if (linked) openFromUrl(linked);
 })();

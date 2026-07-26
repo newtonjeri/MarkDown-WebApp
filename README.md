@@ -47,6 +47,33 @@ or any static server (`npx serve`, nginx, GitHub Pages, …). Visit once online;
 after that it works fully offline and can be installed from the browser's
 "Install app" prompt.
 
+## Opening a document by link
+
+MarkPad can be pointed at a remote Markdown file with a query parameter, so
+another application can hand a document over:
+
+```
+https://newtonjeri.github.io/MarkDown-WebApp/?url=https://example.com/notes.md
+```
+
+`file=` and `src=` are accepted as aliases. The linked document replaces
+whatever the autosaved draft restored, and opens in a clean (unmodified)
+state — it has no file handle, so **Save As** is the way back to disk.
+
+The document name is taken from the URL path, falling back to a `relpath`,
+`path`, `name` or `file` query parameter for servers that stream a file by
+query rather than by path.
+
+Two requirements on the host serving the document:
+
+- it must send a permissive `Access-Control-Allow-Origin`, since the fetch is
+  cross-origin from `github.io`;
+- it should serve the file as `text/markdown` (or any text type) rather than
+  forcing a download.
+
+If the fetch fails, MarkPad says why — a cross-origin refusal and a dead link
+are indistinguishable to the user otherwise — and leaves the editor usable.
+
 ## Keyboard shortcuts
 
 | Action | Shortcut | | Action | Shortcut |

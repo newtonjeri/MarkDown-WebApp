@@ -6,7 +6,7 @@ import { renderMarkdown, extractToc, countStats, createSlugger } from '../js/ren
 import { continueList, toggleWrap, lineBlock, transformLines, lineOps } from '../js/editor.js';
 import { highlightLines } from '../js/mdhighlight.js';
 import { EMOJI } from '../js/emoji-map.js';
-import { isMarkdownName } from '../js/files.js';
+import { isMarkdownName, documentUrlFromLocation, fileNameFromUrl } from '../js/files.js';
 
 const results = [];
 const out = (msg) => {
@@ -33,6 +33,44 @@ const has = (haystack, needle) => {
 const lacks = (haystack, needle) => {
   if (haystack.includes(needle)) throw new Error(`should NOT contain ${JSON.stringify(needle)}`);
 };
+
+/* ------------------------------------------------------- deep-link by URL */
+
+t('reads ?url= from the query string', () => {
+  eq(documentUrlFromLocation('?url=https://h/a.md'), 'https://h/a.md');
+});
+
+t('accepts file= and src= as aliases', () => {
+  eq(documentUrlFromLocation('?file=https://h/a.md'), 'https://h/a.md');
+  eq(documentUrlFromLocation('?src=https://h/a.md'), 'https://h/a.md');
+});
+
+t('no parameter yields empty string', () => {
+  eq(documentUrlFromLocation('?theme=dark'), '');
+  eq(documentUrlFromLocation(''), '');
+});
+
+t('file name comes from the URL path', () => {
+  eq(fileNameFromUrl('https://h/docs/design-notes.md'), 'design-notes.md');
+});
+
+t('percent-encoded names are decoded', () => {
+  eq(fileNameFromUrl('https://h/docs/my%20notes.md'), 'my notes.md');
+});
+
+t('file name falls back to a query parameter when the path has none', () => {
+  // How the Soft Library Assistant serves a shelf file.
+  eq(fileNameFromUrl('http://h:8787/library/raw?relpath=Control/README.md'),
+     'README.md');
+});
+
+t('a non-markdown path still yields a usable name', () => {
+  eq(fileNameFromUrl('https://h/download'), 'download');
+});
+
+t('a malformed URL does not throw', () => {
+  eq(fileNameFromUrl('::::'), 'document.md');
+});
 
 /* ------------------------------------------------------------- renderer */
 

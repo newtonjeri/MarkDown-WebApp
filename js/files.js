@@ -57,6 +57,43 @@ export function isMarkdownName(name) {
   return /\.(md|markdown|mdown|txt)$/i.test(name ?? '');
 }
 
+/**
+ * The document URL MarkPad was deep-linked with, if any:
+ *
+ *     index.html?url=https://host/path/notes.md
+ *
+ * This is how another application hands a document over — the Soft Library
+ * Assistant opens `.md` files from its shelf this way. `file` and `src` are
+ * accepted as aliases because callers guess at all three.
+ */
+export function documentUrlFromLocation(search = location.search) {
+  const q = new URLSearchParams(search);
+  return (q.get('url') || q.get('file') || q.get('src') || '').trim();
+}
+
+/** Best-effort document name from a URL, for the title bar and Save As. */
+export function fileNameFromUrl(raw, base = 'http://localhost/') {
+  try {
+    const u = new URL(raw, base);
+    const fromPath = decodeURIComponent(u.pathname.split('/').pop() || '');
+    if (isMarkdownName(fromPath)) return fromPath;
+    // Servers that stream a file by query rather than by path, e.g.
+    // /library/raw?relpath=Notes/design.md
+    for (const key of ['relpath', 'path', 'name', 'file']) {
+      const v = u.searchParams.get(key);
+      const last = v && decodeURIComponent(v).split('/').pop();
+      if (last && isMarkdownName(last)) return last;
+    }
+    // A URL need not be malformed to yield a useless name: `new URL('::::')`
+    // resolves happily and leaves "::::" as the last path segment, which is
+    // not a legal filename on Windows and would surface in Save As.
+    const safe = fromPath.replace(/[<>:"/\\|?*]/g, '').trim();
+    return /[A-Za-z0-9]/.test(safe) ? safe : 'document.md';
+  } catch {
+    return 'document.md';
+  }
+}
+
 async function verifyWritePermission(handle) {
   const opts = { mode: 'readwrite' };
   if ((await handle.queryPermission(opts)) === 'granted') return true;

@@ -1,5 +1,30 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="104" fill="#0969da"/>
-  <path d="M116 342V180l62 88 62-88v162" fill="none" stroke="#fff" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M372 176v130M320 258l52 52 52-52" fill="none" stroke="#fff" stroke-width="42" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- .MD reader+ — the app mark.
+
+       The M-and-down-arrow is the Markdown convention and is kept
+       deliberately: it is recognised instantly and is the only part that
+       still reads at 16px. The "+" is the single addition, set in amber so it
+       registers as an accent rather than as a fourth glyph competing for
+       attention. The full ".MD reader+" name is carried by the wordmark,
+       which has room for it — crowding five shapes into a launcher tile turns
+       to mud as soon as it is scaled down. -->
+
+  <!-- Flat, with no depth wedge: at tile sizes the wedge drew a hard diagonal
+       straight through the glyph, and the mark is stronger without it. -->
+  <rect width="512" height="512" rx="112" fill="#0B63E5"/>
+
+  <g fill="none" stroke="#fff" stroke-width="42"
+     stroke-linecap="round" stroke-linejoin="round">
+    <!-- M -->
+    <path d="M100 328V186l58 82 58-82v142"/>
+    <!-- down arrow -->
+    <path d="M322 182v120"/>
+    <path d="M276 256l46 46 46-46"/>
+  </g>
+
+  <!-- the "+" of reader+ -->
+  <g stroke="#FFC24B" stroke-width="28" stroke-linecap="round">
+    <path d="M400 388h76"/>
+    <path d="M438 350v76"/>
+  </g>
 </svg>
